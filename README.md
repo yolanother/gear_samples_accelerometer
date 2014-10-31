@@ -1,4 +1,4 @@
-gear_samples_hrm
+Accelerometer Sample
 ================
 
-A sample application demonstrating accessing the heart rate monitor on Samsung Galaxy Gear devices.
+A sample application demonstrating the use of the Gear's accelerometer.
