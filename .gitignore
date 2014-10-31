@@ -2,4 +2,4 @@
 .settings
 .rds_delta
 .sdk_delta.info
-HRMSample.wgt
+*.wgt

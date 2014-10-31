@@ -1,63 +1,65 @@
 window.onload = function () {
 	var initial = new Date().getTime();
 	var dataLength = 500;
-	var dps = []; // dataPoints
-	var historyDataLength = 5;
-	var history = [];
+	var dpsX = [];
+	var dpsY = [];
+	var dpsZ = [];
 
 	var chart = new CanvasJS.Chart("chartContainer",{
 		title :{
 			fontColor: "#ccc",
-			text: "Heart Rate"
+			text: "Sensor Data"
 		},
 		backgroundColor: "#222",
 		data: [{
-			color: "#CD5C5C",
+			color: "#1E90FF",
 			type: "line",
-			dataPoints: dps 
+			dataPoints: dpsX 
+		}, {
+			color: "#228B22",
+			type: "line",
+			dataPoints: dpsY 
+		}, {
+			color: "#B22222",
+			type: "line",
+			dataPoints: dpsZ 
 		}]
 	});
 	var lastSecond = -1;
-	var updateChart = function (heartrate) {
+	var updateChart = function (x, y, z) {
 		time = new Date().getTime() - initial;
-		console.log("[" + time + ", " + heartrate + "]");
-		dps.push({
+		console.log("[" + time + ", " + x + "," + y + "," + z + "]");
+		dpsX.push({
 			x: time / 1000.0,
-			y: heartrate
+			y: x
 		});
-		if (dps.length > dataLength)
+		dpsY.push({
+			x: time / 1000.0,
+			y: y
+		});
+		dpsZ.push({
+			x: time / 1000.0,
+			y: z
+		});
+		if (dpsX.length > dataLength)
 		{
-			dps.shift();				
+			dpsX.shift();
+			dpsY.shift();
+			dpsZ.shift();
 		}
 		var second = Math.round(time / 1000.0);
-		console.log(history.length);
-		if(lastSecond != second) {
-			// TODO use avg heart rate instead of smapshot.
-			history.push({
-				x: second,
-				y: heartrate
-			});
-			if(history.length > historyDataLength) {
-				history.shift();
-			}
-			lastSecond = second;
-		}
+		
 
-		if(dps.length >= dataLength) {
+		if(dpsX.length >= dataLength) {
 			chart.render();
 		}
-		var hrchart = "<center>" + heartrate + "bps</center><table width='100%' cellpadding=4px>";
-		for(var i = history.length - historyDataLength; i >= 0 && i < history.length; i++) {
-			hrchart += "<tr><td align='right' width='50%'>" + history[i].x + "s</td><td width='50%'>" + history[i].y + "bps</td></tr>";
-		}
-		hrchart += "</table>";
-		$('#textbox').html(hrchart);
+		var sensors = "<center>x: " + x + "<br>y: " + y + "<br>z: " + z + "</center>";
+		$('#textbox').html(sensors);
 	};
 
-	updateChart(0);
-	updateChart(250);
+	updateChart(0, 0, 0);
 	for(var i = 0; i < dataLength; i++) {
-		updateChart(0);
+		updateChart(0, 0, 0);
 	}
 
 	document.addEventListener('tizenhwkey', function(e) {
@@ -65,14 +67,10 @@ window.onload = function () {
             tizen.application.getCurrentApplication().exit();
     });
 
-	window.webapis.motion.start("HRM", onchangedCB);
-
-	function onchangedCB(hrmInfo) 
-	{
-	   if(hrmInfo.heartRate > 0) {
-		   updateChart(hrmInfo.heartRate);
-	   } else {
-		   $('#textbox').html("No heart rate detected.");
-	   }
-	}
+	window.addEventListener('devicemotion', function(e) {
+		updateChart(
+				 e.accelerationIncludingGravity.x,
+				-e.accelerationIncludingGravity.y,
+				-e.accelerationIncludingGravity.z);
+	});
 }
